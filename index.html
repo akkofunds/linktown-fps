@@ -14,16 +14,16 @@
 <script src="./peerjs.min.js"></script>
 <script>
 (()=>{'use strict';
-const cv=document.querySelector('#game'),ctx=cv.getContext('2d',{alpha:false}),mc=document.querySelector('#map'),mx=mc.getContext('2d');let W=innerWidth,H=innerHeight,DPR=1;
+const cv=document.querySelector('#game'),ctx=cv.getContext('2d',{alpha:false}),mc=document.querySelector('#map'),mx=mc.getContext('2d');cv.tabIndex=0;let W=innerWidth,H=innerHeight,DPR=1;
 function resize(){DPR=Math.min(devicePixelRatio||1,1.25);W=innerWidth;H=innerHeight;cv.width=Math.floor(W*DPR);cv.height=Math.floor(H*DPR);ctx.setTransform(DPR,0,0,DPR,0,0)}addEventListener('resize',resize);resize();
 const MAP=4600,HALF=MAP/2,FOV=Math.PI/2.65,STEP=7;let me={id:'you',x:0,y:0,z:0,vz:0,a:0,color:'#48e2ff',name:'YOU',speed:0},others=new Map(),keys={},locked=false,ammo=17,reload=0,shots=[],last=performance.now(),playing=false,peer=null,connections=new Map(),myId='';
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
-function start(){playing=true;document.querySelector('#menu').classList.add('hide');cv.requestPointerLock?.()}
+function start(){playing=true;document.querySelector('#menu').classList.add('hide');cv.focus({preventScroll:true});try{const lock=cv.requestPointerLock?.();if(lock&&typeof lock.catch==='function')lock.catch(()=>{})}catch(_){}}
 function menu(msg){document.exitPointerLock?.();document.querySelector('#menu').classList.remove('hide');if(msg)status(msg)}
 function status(s){document.querySelector('#status').textContent=s}
 document.querySelector('#start').onclick=start;
 document.addEventListener('pointerlockchange',()=>locked=document.pointerLockElement===cv);
-addEventListener('keydown',e=>{keys[e.code]=true;if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();if(e.code==='KeyR')reloadGun();if(e.code==='Escape'&&playing){playing=false;menu('Paused. Click Play to return.')} });addEventListener('keyup',e=>keys[e.code]=false);
+addEventListener('keydown',e=>{keys[e.code]=true;if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();if(e.code==='KeyR')reloadGun();if(e.code==='Escape'&&playing){playing=false;menu('Paused. Click Play to return.')} });addEventListener('keyup',e=>keys[e.code]=false);addEventListener('blur',()=>{keys={}});
 cv.addEventListener('click',()=>{if(playing&&!locked)cv.requestPointerLock?.();else if(playing&&locked)fire()});addEventListener('mousemove',e=>{if(locked)me.a+=e.movementX*.0022});
 function reloadGun(){if(reload>0||ammo===17)return;reload=1.05;document.querySelector('#ammo').textContent='RELOADING…'}
 function fire(){if(reload>0)return;if(ammo===0){reloadGun();return}ammo--;shots.push({t:0,remote:false});broadcast({t:'shot',id:myId||'you',x:me.x,y:me.y,a:me.a});document.querySelector('#ammo').textContent=`${ammo} / ∞ · R to reload`;if(ammo===0)setTimeout(reloadGun,200)}
@@ -56,6 +56,7 @@ function loop(now){let dt=Math.min((now-last)/1000,.04);last=now;if(playing)upda
 })();
 </script>
 </body></html>
+
 
 
 
